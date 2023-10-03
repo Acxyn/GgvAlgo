@@ -53,6 +53,29 @@ namespace AcxynAPI.Controllers
         // 3. Developer Metrics (DM)
         // 4. Game Metrics (GM)
         // GGV score is from 0-1000
+
+        [HttpPost("GGVDemo")]
+        public async Task UpdateGGVDemo()
+        {
+            string token = await AdminLoginAsync();
+            Game game = new Game();
+            game.GameId = 48;
+            int ggv = await GetGameGGV(token, game.GameId);
+            Random rnd = new Random();
+            game.GGV = ggv + rnd.Next(1, 10);
+            await UpdateGGVAsync(game, token);
+        }
+
+        [HttpPost("GGVDemoReset")]
+        public async Task ResetGGVDemo()
+        {
+            string token = await AdminLoginAsync();
+            Game game = new Game();
+            game.GameId = 48;
+            game.GGV = 500;
+            await UpdateGGVAsync(game, token);
+        }
+
         private int GgvAlgorithm(Game game, List<Game> gameList)
         {
             int ggv = 0;
@@ -263,6 +286,40 @@ namespace AcxynAPI.Controllers
             }
 
             return "";
+        }
+
+        private async Task<int> GetGameGGV(string token, int gameId)
+        {
+            // Create an instance of HttpClient
+            using (var httpClient = new HttpClient())
+            {
+                // Set the Bearer token
+                httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+                // Prepare the JSON payload
+                //var jsonPayload = "{\"email\":\"dave@acxyn.xyz\",\"password\":\"Pass@123\"}";
+                //var jsonPayload = JsonSerializer.Serialize(req);
+                // Create the HTTP content with JSON payload
+                var url = "https://dev-api.acxyn.io/super-admin/api/game/analytics/" + gameId;
+                // Send the POST request
+                var response = await httpClient.GetAsync(url);
+
+                // Check the response status
+                if (response.IsSuccessStatusCode)
+                {
+                    // Get the response content
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine(responseContent);
+                    var resultJson = JsonSerializer.Deserialize<GameResp>(responseContent);
+                    return resultJson.data.ggv;
+                }
+                else
+                {
+                    Console.WriteLine("Request failed with status code: " + response.StatusCode);
+                }
+            }
+
+            return 0;
         }
 
         private bool UpsertGameData(GameListResp gameList)

@@ -38,6 +38,17 @@ namespace AcxynAPI.Model
         public string msg { get; set; }
     }
 
+    public class GameResp
+    {
+        public bool error { get; set; }
+        public GameRespData data { get; set; }
+    }
+
+    public class GameRespData
+    {
+        public int id { get; set; }
+        public int ggv { get; set; }
+    }
     public class GameListResp
     {
         public bool error { get; set; }
